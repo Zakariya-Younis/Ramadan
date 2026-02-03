@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  /* Luxury Light Theme (White/Black/Gold) */
+  --background: #ffffff;
+  --foreground: #09090b;
+  /* Zinc-950 */
+
+  /* Semantic Colors */
+  --card: #fafafa;
+  /* Stone-50 */
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #b45309;
+  /* Amber-700 (Metallic Gold) */
+  --primary-foreground: #ffffff;
+  --secondary: #fef3c7;
+  /* Amber-100 (Soft Gold) */
+  --secondary-foreground: #451a03;
+  /* Amber-950 */
+  --border: #e4e4e7;
+  /* Zinc-200 */
+  --input: #e4e4e7;
+  --ring: #b45309;
+
+  /* Legacy/Direct Palette Mapping for ease of use */
+  --color-gold-400: #d97706;
+  /* Darker gold for text visibility */
+  --color-gold-500: #b45309;
+  /* Metallic Primary */
+  --color-gold-600: #92400e;
+  /* Deep Bronze */
+
+  /* Retain but remap 'midnight' to ensure old classes don't break layout (though we will replace them) */
+  --color-midnight-900: #ffffff;
+  /* Mapped to white for background compatibility */
+  --color-midnight-950: #fafafa;
+  /* Mapped to card background */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+
+  /* Overrides for existing classes */
+  --color-midnight-900: var(--color-midnight-900);
+  --color-midnight-950: var(--color-midnight-950);
+  --color-gold-400: var(--color-gold-400);
+  --color-gold-500: var(--color-gold-500);
+  --color-gold-600: var(--color-gold-600);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
