@@ -178,19 +178,32 @@ export default function AdminQuestionsPage() {
                     <h1 className="text-3xl font-bold text-primary">إدارة الأسئلة</h1>
                     <div className="flex items-center gap-4">
                         {/* Quiz Toggle */}
-                        <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-border shadow-sm">
-                            <span className={`text-sm font-bold ${isQuizEnabled ? 'text-green-600' : 'text-red-600'}`}>
-                                {isQuizEnabled ? 'الأسئلة مفعلة' : 'الأسئلة معطلة'}
-                            </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span>{isQuizEnabled ? 'مفعلة' : 'معطلة'}</span>
+
                             <button
                                 onClick={toggleQuizStatus}
-                                disabled={togglingQuiz}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isQuizEnabled ? 'bg-green-500' : 'bg-gray-300'
-                                    }`}
+                                style={{
+                                    width: '40px',
+                                    height: '20px',
+                                    borderRadius: '20px',
+                                    backgroundColor: isQuizEnabled ? '#22c55e' : '#94a3b8',
+                                    border: 'none',
+                                    position: 'relative',
+                                    cursor: 'pointer'
+                                }}
                             >
-                                <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isQuizEnabled ? 'translate-x-6' : 'translate-x-1'
-                                        }`}
+                                <div
+                                    style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: isQuizEnabled ? '22px' : '2px',
+                                        transition: '0.2s'
+                                    }}
                                 />
                             </button>
                         </div>
