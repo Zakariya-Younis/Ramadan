@@ -106,10 +106,13 @@ export default function QuizPage() {
 
             if (fetchError) throw fetchError
 
+            const currentQ = currentQuestion
+            if (!currentQ) throw new Error('No question active')
+
             // 2. Save answer
             await supabase.from('user_answers').insert({
                 session_id: session.id,
-                question_id: currentQuestion.id,
+                question_id: currentQ.id,
                 user_answer: -1, // -1 indicates timeout/no answer
                 is_correct: isCorrect,
                 score: score
@@ -156,7 +159,9 @@ export default function QuizPage() {
                 }
             }
 
-            setAnswers([...answers, { question_id: currentQuestion.id, is_correct: isCorrect, score }])
+            if (currentQ) {
+                setAnswers([...answers, { question_id: currentQ.id, is_correct: isCorrect, score }])
+            }
             setShowResult(true)
 
             setTimeout(() => {
@@ -535,10 +540,13 @@ export default function QuizPage() {
 
             if (fetchError) throw fetchError
 
+            const currentQ = currentQuestion
+            if (!currentQ) throw new Error('No question active')
+
             // 2. Save answer
             const { error: answerError } = await supabase.from('user_answers').insert({
                 session_id: session.id,
-                question_id: currentQuestion.id,
+                question_id: currentQ.id,
                 user_answer: selectedOption,
                 is_correct: isCorrect,
                 score: score
@@ -592,7 +600,10 @@ export default function QuizPage() {
                 }
             }
 
-            setAnswers([...answers, { question_id: currentQuestion.id, is_correct: isCorrect, score }])
+            const currentQFinal = currentQuestion // Re-check after potential await
+            if (currentQFinal) {
+                setAnswers([...answers, { question_id: currentQFinal.id, is_correct: isCorrect, score }])
+            }
             setShowResult(true)
 
             setTimeout(() => {
