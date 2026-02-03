@@ -16,6 +16,7 @@ export default function Dashboard() {
     const [countdownLabel, setCountdownLabel] = useState('العد التنازلي لرمضان')
     const [prayerTimes, setPrayerTimes] = useState<{ Fajr: string; Maghrib: string } | null>(null)
     const [hijriDate, setHijriDate] = useState('')
+    const [isQuizEnabled, setIsQuizEnabled] = useState(true)
     const supabase = createClient()
     const router = useRouter()
 
@@ -113,6 +114,7 @@ export default function Dashboard() {
 
         const timer = setInterval(updateTimer, 1000)
         updateTimer() // Initial call
+        loadQuizSetting()
 
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
@@ -126,8 +128,8 @@ export default function Dashboard() {
                     .eq('id', user.id)
                     .single()
 
-                if (userData?.name) {
-                    setUserName(userData.name)
+                if (userData) {
+                    setUserName(userData.name || '')
                 }
                 calculateStreak(user.id)
                 calculateTodayScore(user.id)
@@ -136,7 +138,19 @@ export default function Dashboard() {
         }
         checkUser()
         return () => clearInterval(timer)
-    }, [router, supabase])
+    }, [router, supabase, prayerTimes])
+
+    const loadQuizSetting = async () => {
+        const { data } = await supabase
+            .from('app_settings')
+            .select('value')
+            .eq('key', 'quiz_enabled')
+            .single()
+
+        if (data) {
+            setIsQuizEnabled(data.value === true)
+        }
+    }
 
     const calculateStreak = async (userId: string) => {
         const { data: sessions } = await supabase
@@ -260,10 +274,17 @@ export default function Dashboard() {
                     <h2 className="text-2xl font-black mb-2 text-foreground">أهلاً، {userName || 'يا صائم'}!</h2>
                     <p className="text-gray-500 text-sm mb-6 font-medium">جاهز لمضاعفة حسناتك واختبار معلوماتك؟</p>
 
-                    <Link href="/quiz" className="block w-full bg-primary hover:bg-amber-800 text-white font-black py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-gold-500/20 flex items-center justify-center gap-3 text-lg">
-                        الأسئلة اليومية
-                        <Moon className="w-5 h-5 fill-white" />
-                    </Link>
+                    {isQuizEnabled ? (
+                        <Link href="/quiz" className="block w-full bg-primary hover:bg-amber-800 text-white font-black py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-gold-500/20 flex items-center justify-center gap-3 text-lg">
+                            الأسئلة اليومية
+                            <Moon className="w-5 h-5 fill-white" />
+                        </Link>
+                    ) : (
+                        <div className="block w-full bg-gray-100 text-gray-400 font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1 border border-dashed border-gray-300">
+                            <span className="text-lg">الأسئلة اليومية (مغلقة حالياً)</span>
+                            <span className="text-[10px] font-bold text-gray-400">ستفتح قريباً بإذن الله</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

@@ -44,6 +44,8 @@ export default function AdminQuestionsPage() {
     // Filter state
     const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all')
     const [showBonusOnly, setShowBonusOnly] = useState(false)
+    const [isQuizEnabled, setIsQuizEnabled] = useState(true)
+    const [togglingQuiz, setTogglingQuiz] = useState(false)
 
     const supabase = createClient()
     const router = useRouter()
@@ -70,10 +72,23 @@ export default function AdminQuestionsPage() {
 
             setIsAdmin(true)
             loadQuestions()
+            loadQuizSetting()
         }
 
         checkAdminAndLoad()
     }, [router, supabase])
+
+    const loadQuizSetting = async () => {
+        const { data } = await supabase
+            .from('app_settings')
+            .select('value')
+            .eq('key', 'quiz_enabled')
+            .single()
+
+        if (data) {
+            setIsQuizEnabled(data.value === true)
+        }
+    }
 
     const loadQuestions = async () => {
         const { data } = await supabase
@@ -118,6 +133,20 @@ export default function AdminQuestionsPage() {
         }
     }
 
+    const toggleQuizStatus = async () => {
+        setTogglingQuiz(true)
+        const nextStatus = !isQuizEnabled
+
+        const { error } = await supabase
+            .from('app_settings')
+            .upsert({ key: 'quiz_enabled', value: nextStatus })
+
+        if (!error) {
+            setIsQuizEnabled(nextStatus)
+        }
+        setTogglingQuiz(false)
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center text-primary">
@@ -147,12 +176,32 @@ export default function AdminQuestionsPage() {
             <div className="max-w-6xl mx-auto py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-primary">إدارة الأسئلة</h1>
-                    <button
-                        onClick={() => router.push('/dashboard')}
-                        className="text-sm text-gray-500 hover:text-black transition-colors"
-                    >
-                        العودة
-                    </button>
+                    <div className="flex items-center gap-4">
+                        {/* Quiz Toggle */}
+                        <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-border shadow-sm">
+                            <span className={`text-sm font-bold ${isQuizEnabled ? 'text-green-600' : 'text-red-600'}`}>
+                                {isQuizEnabled ? 'الأسئلة مفعلة' : 'الأسئلة معطلة'}
+                            </span>
+                            <button
+                                onClick={toggleQuizStatus}
+                                disabled={togglingQuiz}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isQuizEnabled ? 'bg-green-500' : 'bg-gray-300'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isQuizEnabled ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className="text-sm text-gray-500 hover:text-black transition-colors"
+                        >
+                            العودة
+                        </button>
+                    </div>
                 </div>
 
                 {/* Statistics */}
