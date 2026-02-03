@@ -95,15 +95,6 @@ export default function GuidePage() {
                         </div>
                     </div>
                 </div>
-
-                <div className="flex justify-center pt-4">
-                    <Link
-                        href="/quiz"
-                        className="bg-primary hover:bg-gold-600 text-white font-bold py-4 px-12 rounded-xl transition-transform hover:scale-105 shadow-lg shadow-gold-500/20"
-                    >
-                        ابدأ التحدي الآن!
-                    </Link>
-                </div>
             </main>
         </div>
     )
