@@ -23,6 +23,9 @@ const reemKufi = Reem_Kufi({
 export const metadata: Metadata = {
     title: "مسابقة رمضان",
     description: "تحديات يومية للشهر الفضيل",
+    icons: {
+        icon: '/vercel.jpg',
+    },
 };
 
 export default function RootLayout({
