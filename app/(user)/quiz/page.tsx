@@ -169,7 +169,7 @@ export default function QuizPage() {
                 setIsTimeUp(false)
                 setSelectedOption(null)
                 setSubmitting(false)
-                setTimeLeft(25) // Reset timer
+                setTimeLeft(15) // Reset timer
 
                 if (isCompleted) {
                     setSession(prev => prev ? { ...prev, completed: true, total_score: newTotalScore } : null)
@@ -179,7 +179,7 @@ export default function QuizPage() {
                 } else {
                     setSession(prev => prev ? { ...prev, current_question_index: nextIndex, total_score: newTotalScore } : null)
                     setCurrentQuestion(null)
-                    setTimeLeft(25)
+                    setTimeLeft(15)
                     if (session?.question_ids[nextIndex]) {
                         loadQuestion(session.question_ids[nextIndex])
                     }
@@ -430,7 +430,7 @@ export default function QuizPage() {
         if (newSession) {
             setSession(newSession)
             await loadQuestion(questionIds[0])
-            setTimeLeft(25) // Initialize timer for first question
+            setTimeLeft(15) // Initialize timer for first question
         } else if (createError?.code === '23505') {
             console.log('Session already exists, loading existing session...')
             // Duplicate key error - session already exists, let's load it
@@ -458,7 +458,7 @@ export default function QuizPage() {
                     const startTime = new Date(existingSession.last_question_start_time).getTime()
                     const now = new Date().getTime()
                     const elapsedSeconds = Math.floor((now - startTime) / 1000)
-                    const remaining = 25 - elapsedSeconds
+                    const remaining = 15 - elapsedSeconds
                     setTimeLeft(remaining > 0 ? remaining : 0)
                     if (remaining <= 0) {
                         // Immediate timeout trigger logic if needed, but safe to just load and let effect handle?
@@ -466,7 +466,7 @@ export default function QuizPage() {
                         setTimeout(() => handleTimeout(true), 100)
                     }
                 } else {
-                    setTimeLeft(25)
+                    setTimeLeft(15)
                 }
 
                 await loadQuestion(qId)
@@ -510,7 +510,7 @@ export default function QuizPage() {
 
             if (!bonusAnswer) {
                 setBonusQuestion(bonus)
-                setTimeLeft(25)
+                setTimeLeft(15)
 
                 // Update session with start time for bonus question (if not already set, or just update it)
                 // Note: Ideally we should update the DB here to allow bonus persistence too
@@ -727,7 +727,7 @@ export default function QuizPage() {
                         <div className="bg-red-50 border border-red-100 p-4 rounded-2xl mb-8 flex items-start gap-3 text-right">
                             <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
                             <p className="text-red-700 text-sm font-bold leading-relaxed">
-                                انتبه: بمجرد البدء، سيبدأ العداد التنازلي (25 ثانية لكل سؤال) ولن يتوقف حتى لو قمت بإغلاق الصفحة.
+                                انتبه: بمجرد البدء، سيبدأ العداد التنازلي (15ثانية لكل سؤال) ولن يتوقف حتى لو قمت بإغلاق الصفحة.
                             </p>
                         </div>
 

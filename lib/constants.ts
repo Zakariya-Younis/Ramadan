@@ -6,4 +6,4 @@ export const DIFFICULTY_POINTS = {
 } as const;
 
 export const MAX_DAILY_POINTS = 30; // 5 + 10 + 15
-export const QUIZ_TIMER_SECONDS = 25;
+export const QUIZ_TIMER_SECONDS = 15;
