@@ -28,10 +28,11 @@ export default function LeaderboardPage() {
                 return
             }
 
-            // Get all attempts with user names
+            // Get all attempts with user names, filtering out banned users
             const { data: attempts } = await supabase
                 .from('attempts')
-                .select('user_id, score, users(name)')
+                .select('user_id, score, users!inner(name, is_banned)')
+                .eq('users.is_banned', false)
 
             if (attempts) {
                 // Group by user and sum scores
