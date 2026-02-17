@@ -781,14 +781,14 @@ export default function QuizPage() {
 
                     {!showResult ? (
                         <div className="bg-midnight-950 p-6 rounded-2xl border border-gold-600/30">
-                            <p className="text-xl mb-6">{bonusQuestion.question_text}</p>
+                            <p className="text-xl mb-6 select-none">{bonusQuestion.question_text}</p>
 
                             <div className="space-y-3">
                                 {bonusQuestion.options.map((option, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setSelectedOption(index)}
-                                        className={`w-full text-right p-4 rounded-lg border-2 transition-all ${selectedOption === index
+                                        className={`w-full text-right p-4 rounded-lg border-2 transition-all select-none ${selectedOption === index
                                             ? 'border-gold-500 bg-gold-900/30'
                                             : 'border-gray-700 hover:border-gold-600/50'
                                             }`}
@@ -978,14 +978,14 @@ export default function QuizPage() {
 
                     {!showResult ? (
                         <>
-                            <p className="text-xl mb-6">{currentQuestion.question_text}</p>
+                            <p className="text-xl mb-6 select-none">{currentQuestion.question_text}</p>
 
                             <div className="space-y-3">
                                 {currentQuestion.options.map((option, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setSelectedOption(index)}
-                                        className={`w-full text-right p-4 rounded-lg border-2 transition-all ${selectedOption === index
+                                        className={`w-full text-right p-4 rounded-lg border-2 transition-all select-none ${selectedOption === index
                                             ? 'border-gold-500 bg-gold-900/30'
                                             : 'border-gray-700 hover:border-gold-600/50'
                                             }`}

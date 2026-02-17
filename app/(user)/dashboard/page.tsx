@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Star, Medal, Trophy, Flame, Info, Moon, Calendar, Clock } from 'lucide-react'
+import { Star, Medal, Trophy, Flame, Info, Moon, Calendar, Clock, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { getLocalDate, formatLocalDate } from '@/lib/utils'
 
@@ -18,6 +18,9 @@ export default function Dashboard() {
     const [prayerTimes, setPrayerTimes] = useState<{ Fajr: string; Maghrib: string } | null>(null)
     const [hijriDate, setHijriDate] = useState('')
     const [isQuizEnabled, setIsQuizEnabled] = useState(true)
+    const [isQuizCompleted, setIsQuizCompleted] = useState(false)
+    const [nextQuestionTimeLeft, setNextQuestionTimeLeft] = useState('')
+
     const supabase = createClient()
     const router = useRouter()
 
@@ -33,9 +36,13 @@ export default function Dashboard() {
         // Dynamic Countdown Timer
         const ramadanStartDate = new Date('2026-02-18T00:00:00')
 
-        const fetchPrayerTimes = async (lat: number, lon: number) => {
+        // Muscat, Oman Coordinates
+        const MUSCAT_LAT = 23.5880
+        const MUSCAT_LON = 58.3829
+
+        const fetchPrayerTimes = async () => {
             try {
-                const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=4`)
+                const response = await fetch(`https://api.aladhan.com/v1/timings?latitude=${MUSCAT_LAT}&longitude=${MUSCAT_LON}&method=4`)
                 const data = await response.json()
                 if (data.code === 200) {
                     setPrayerTimes({
@@ -48,13 +55,8 @@ export default function Dashboard() {
             }
         }
 
-        // Get user location
-        if (typeof window !== 'undefined' && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => fetchPrayerTimes(pos.coords.latitude, pos.coords.longitude),
-                (err) => console.log('Geolocation disabled or failed:', err)
-            )
-        }
+        // Fetch prayer times for Muscat immediately
+        fetchPrayerTimes()
 
         const updateTimer = () => {
             const now = new Date()
@@ -70,47 +72,60 @@ export default function Dashboard() {
                     minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
                     seconds: Math.floor((diff % (1000 * 60)) / 1000)
                 })
-                return
-            }
-
-            // 2. During Ramadan: Count down to Iftar or Suhoor
-            // Default times (Iftar 18:30, Suhoor 04:30) used as fallback if API fails
-            let iftarStr = prayerTimes?.Maghrib || "18:30"
-            let suhoorStr = prayerTimes?.Fajr || "04:30"
-
-            const iftarTime = new Date(now)
-            const [ifH, ifM] = iftarStr.split(':').map(Number)
-            iftarTime.setHours(ifH, ifM, 0, 0)
-
-            const suhoorTime = new Date(now)
-            const [suH, suM] = suhoorStr.split(':').map(Number)
-            suhoorTime.setHours(suH, suM, 0, 0)
-
-            let targetTime: Date
-            let label: string
-
-            if (nowTime < suhoorTime.getTime()) {
-                targetTime = suhoorTime
-                label = 'الوقت المتبقي للسحور'
-            } else if (nowTime < iftarTime.getTime()) {
-                targetTime = iftarTime
-                label = 'الوقت المتبقي للإفطار'
             } else {
-                // Next day's suhoor
-                const nextSuhoor = new Date(suhoorTime)
-                nextSuhoor.setDate(nextSuhoor.getDate() + 1)
-                targetTime = nextSuhoor
-                label = 'الوقت المتبقي لسحور الغد'
+                // 2. During Ramadan: Count down to Iftar or Suhoor
+                // Default times (Iftar 18:30, Suhoor 04:30) used as fallback if API fails
+                let iftarStr = prayerTimes?.Maghrib || "18:30"
+                let suhoorStr = prayerTimes?.Fajr || "04:30"
+
+                const iftarTime = new Date(now)
+                const [ifH, ifM] = iftarStr.split(':').map(Number)
+                iftarTime.setHours(ifH, ifM, 0, 0)
+
+                const suhoorTime = new Date(now)
+                const [suH, suM] = suhoorStr.split(':').map(Number)
+                suhoorTime.setHours(suH, suM, 0, 0)
+
+                let targetTime: Date
+                let label: string
+
+                if (nowTime < suhoorTime.getTime()) {
+                    targetTime = suhoorTime
+                    label = 'الوقت المتبقي للسحور'
+                } else if (nowTime < iftarTime.getTime()) {
+                    targetTime = iftarTime
+                    label = 'الوقت المتبقي للإفطار'
+                } else {
+                    // Next day's suhoor
+                    const nextSuhoor = new Date(suhoorTime)
+                    nextSuhoor.setDate(nextSuhoor.getDate() + 1)
+                    targetTime = nextSuhoor
+                    label = 'الوقت المتبقي لسحور الغد'
+                }
+
+                const diff = targetTime.getTime() - nowTime
+                setCountdownLabel(label)
+                setTimeLeft({
+                    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                    minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+                    seconds: Math.floor((diff % (1000 * 60)) / 1000)
+                })
             }
 
-            const diff = targetTime.getTime() - nowTime
-            setCountdownLabel(label)
-            setTimeLeft({
-                days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-                seconds: Math.floor((diff % (1000 * 60)) / 1000)
-            })
+            // Next Question Timer Logic (Resets at midnight local time)
+            const midnight = new Date()
+            midnight.setHours(24, 0, 0, 0)
+            const diffToMidnight = midnight.getTime() - nowTime
+
+            if (diffToMidnight > 0) {
+                const hours = Math.floor((diffToMidnight % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+                const minutes = Math.floor((diffToMidnight % (1000 * 60 * 60)) / (1000 * 60))
+                const seconds = Math.floor((diffToMidnight % (1000 * 60)) / 1000)
+                setNextQuestionTimeLeft(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`)
+            } else {
+                setNextQuestionTimeLeft('00:00:00')
+            }
         }
 
         const timer = setInterval(updateTimer, 1000)
@@ -132,8 +147,9 @@ export default function Dashboard() {
                 if (userData) {
                     setUserName(userData.name || '')
                 }
-                calculateStreak(user.id)
-                calculateTodayScore(user.id)
+                await calculateStreak(user.id)
+                await calculateTodayScore(user.id)
+                await checkQuizCompletion(user.id)
             }
             setLoading(false)
         }
@@ -150,6 +166,22 @@ export default function Dashboard() {
 
         if (data) {
             setIsQuizEnabled(data.value === true)
+        }
+    }
+
+    const checkQuizCompletion = async (userId: string) => {
+        const today = getLocalDate()
+        const { data: session } = await supabase
+            .from('daily_sessions')
+            .select('completed')
+            .eq('user_id', userId)
+            .eq('session_date', today)
+            .single()
+
+        if (session && session.completed) {
+            setIsQuizCompleted(true)
+        } else {
+            setIsQuizCompleted(false)
         }
     }
 
@@ -278,10 +310,22 @@ export default function Dashboard() {
                     <p className="text-gray-500 text-sm mb-6 font-medium">جاهز لمضاعفة حسناتك واختبار معلوماتك؟</p>
 
                     {isQuizEnabled ? (
-                        <Link href="/quiz" className="block w-full bg-primary hover:bg-amber-800 text-white font-black py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-gold-500/20 flex items-center justify-center gap-3 text-lg">
-                            الأسئلة اليومية
-                            <Moon className="w-5 h-5 fill-white" />
-                        </Link>
+                        isQuizCompleted ? (
+                            <Link href="/quiz" className="block w-full bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold py-4 rounded-2xl transition-all flex flex-col items-center justify-center gap-1">
+                                <span className="flex items-center gap-2 text-lg">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    أكملت أسئلة اليوم
+                                </span>
+                                <span className="text-xs font-medium text-green-700/80">
+                                    أسئلة جديدة خلال: {nextQuestionTimeLeft}
+                                </span>
+                            </Link>
+                        ) : (
+                            <Link href="/quiz" className="block w-full bg-primary hover:bg-amber-800 text-white font-black py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-gold-500/20 flex items-center justify-center gap-3 text-lg">
+                                الأسئلة اليومية
+                                <Moon className="w-5 h-5 fill-white" />
+                            </Link>
+                        )
                     ) : (
                         <div className="block w-full bg-gray-100 text-gray-400 font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1 border border-dashed border-gray-300">
                             <span className="text-lg">الأسئلة اليومية (مغلقة حالياً)</span>
