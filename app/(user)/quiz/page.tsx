@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle, Circle, Clock, AlertTriangle, Trophy, Moon } from 'lucide-react'
 import { DIFFICULTY_POINTS, QUIZ_TIMER_SECONDS } from '@/lib/constants'
+import { getLocalDate } from '@/lib/utils'
 
 interface Question {
     id: string
@@ -134,7 +135,7 @@ export default function QuizPage() {
                 .eq('id', session.id)
 
             // 4. Update attempts table for leaderboard
-            const today = new Date().toISOString().split('T')[0]
+            const today = getLocalDate()
             const sDate = freshSession?.session_date || today
             const { data: { user } } = await supabase.auth.getUser()
 
@@ -241,7 +242,7 @@ export default function QuizPage() {
             return
         }
 
-        const today = new Date().toISOString().split('T')[0]
+        const today = getLocalDate()
 
         // Check for existing session
         const { data: existingSession } = await supabase
@@ -334,7 +335,7 @@ export default function QuizPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
             setLoading(true)
-            await createNewSession(user.id, new Date().toISOString().split('T')[0])
+            await createNewSession(user.id, getLocalDate())
             setShowStartConfirm(false)
             setLoading(false)
         }
@@ -571,7 +572,7 @@ export default function QuizPage() {
             if (sessionUpdateError) console.error('Error updating session:', sessionUpdateError)
 
             // 4. Update attempts table for leaderboard
-            const today = new Date().toISOString().split('T')[0]
+            const today = getLocalDate()
             const sDate = freshSession?.session_date || today
 
             const { data: { user } } = await supabase.auth.getUser()
@@ -672,7 +673,7 @@ export default function QuizPage() {
                 .eq('id', session.id)
 
             // 4. Update attempts
-            const today = new Date().toISOString().split('T')[0]
+            const today = getLocalDate()
             const sDate = freshSession?.session_date || today
             const { data: { user } } = await supabase.auth.getUser()
 

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Star, Medal, Trophy, Flame, Info, Moon, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { getLocalDate, formatLocalDate } from '@/lib/utils'
 
 export default function Dashboard() {
     const [user, setUser] = useState<any>(null)
@@ -167,8 +168,10 @@ export default function Dashboard() {
 
         const dates = sessions.map(s => s.session_date)
         let currentStreak = 0
-        const today = new Date().toISOString().split('T')[0]
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+        const today = getLocalDate()
+        const d = new Date()
+        d.setDate(d.getDate() - 1)
+        const yesterday = formatLocalDate(d)
 
         if (dates[0] !== today && dates[0] !== yesterday) {
             setStreak(0)
@@ -191,7 +194,7 @@ export default function Dashboard() {
     }
 
     const calculateTodayScore = async (userId: string) => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getLocalDate()
         const { data: session } = await supabase
             .from('daily_sessions')
             .select('total_score')
