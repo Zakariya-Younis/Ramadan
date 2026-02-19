@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Trash2, Plus, Loader2, Gift } from 'lucide-react'
+import { Trash2, Plus, Loader2, Gift, Pencil, X } from 'lucide-react'
 
 interface Question {
     id: string
@@ -32,6 +32,7 @@ export default function AdminQuestionsPage() {
     const [loading, setLoading] = useState(true)
     const [isAdmin, setIsAdmin] = useState(false)
     const [showForm, setShowForm] = useState(false)
+    const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null)
 
     // Form state
     const [questionText, setQuestionText] = useState('')
@@ -102,28 +103,59 @@ export default function AdminQuestionsPage() {
         setLoading(false)
     }
 
-    const handleAddQuestion = async (e: React.FormEvent) => {
+    const handleSaveQuestion = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        const { error } = await supabase.from('questions').insert({
+        const questionData = {
             question_text: questionText,
             options: options,
             correct_option: correctOption,
             difficulty: difficulty,
             is_bonus: isBonus,
             bonus_date: isBonus ? bonusDate : null
-        })
+        }
+
+        let error
+        if (editingQuestionId) {
+            const { error: updateError } = await supabase
+                .from('questions')
+                .update(questionData)
+                .eq('id', editingQuestionId)
+            error = updateError
+        } else {
+            const { error: insertError } = await supabase
+                .from('questions')
+                .insert(questionData)
+            error = insertError
+        }
 
         if (!error) {
-            setQuestionText('')
-            setOptions(['', '', '', ''])
-            setCorrectOption(0)
-            setDifficulty('easy')
-            setIsBonus(false)
-            setBonusDate('')
-            setShowForm(false)
+            resetForm()
             loadQuestions()
         }
+    }
+
+    const resetForm = () => {
+        setQuestionText('')
+        setOptions(['', '', '', ''])
+        setCorrectOption(0)
+        setDifficulty('easy')
+        setIsBonus(false)
+        setBonusDate('')
+        setShowForm(false)
+        setEditingQuestionId(null)
+    }
+
+    const handleEditClick = (question: Question) => {
+        setQuestionText(question.question_text)
+        setOptions(question.options)
+        setCorrectOption(question.correct_option)
+        setDifficulty(question.difficulty)
+        setIsBonus(question.is_bonus)
+        setBonusDate(question.bonus_date || '')
+        setEditingQuestionId(question.id)
+        setShowForm(true)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
     const handleDeleteQuestion = async (id: string) => {
@@ -267,15 +299,36 @@ export default function AdminQuestionsPage() {
                 </div>
 
                 <button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={() => {
+                        if (showForm && editingQuestionId) {
+                            resetForm()
+                        } else {
+                            setShowForm(!showForm)
+                        }
+                    }}
                     className="mb-6 bg-primary hover:bg-gold-600 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 shadow-lg shadow-gold-500/20 transition-transform active:scale-95"
                 >
-                    <Plus className="w-5 h-5" />
-                    إضافة سؤال جديد
+                    {showForm && editingQuestionId ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                    {showForm && editingQuestionId ? 'إلغاء التعديل' : 'إضافة سؤال جديد'}
                 </button>
 
                 {showForm && (
-                    <form onSubmit={handleAddQuestion} className="bg-card p-6 rounded-2xl border border-border mb-6 space-y-4 shadow-md">
+                    <form onSubmit={handleSaveQuestion} className="bg-card p-6 rounded-2xl border border-border mb-6 space-y-4 shadow-md">
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-xl font-bold text-primary">
+                                {editingQuestionId ? 'تعديل السؤال' : 'إضافة سؤال جديد'}
+                            </h2>
+                            {editingQuestionId && (
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">نص السؤال</label>
                             <textarea
@@ -359,12 +412,23 @@ export default function AdminQuestionsPage() {
                             </div>
                         )}
 
-                        <button
-                            type="submit"
-                            className="w-full bg-primary hover:bg-gold-600 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95"
-                        >
-                            حفظ السؤال
-                        </button>
+                        <div className="flex gap-3">
+                            <button
+                                type="submit"
+                                className="flex-1 bg-primary hover:bg-gold-600 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95"
+                            >
+                                {editingQuestionId ? 'حفظ التعديلات' : 'حفظ السؤال'}
+                            </button>
+                            {editingQuestionId && (
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-all active:scale-95"
+                                >
+                                    إلغاء
+                                </button>
+                            )}
+                        </div>
                     </form>
                 )}
 
@@ -395,12 +459,22 @@ export default function AdminQuestionsPage() {
                                         ))}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => handleDeleteQuestion(question.id)}
-                                    className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => handleEditClick(question)}
+                                        className="text-gray-300 hover:text-primary transition-colors p-2"
+                                        title="تعديل"
+                                    >
+                                        <Pencil className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteQuestion(question.id)}
+                                        className="text-gray-300 hover:text-red-500 transition-colors p-2"
+                                        title="حذف"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
