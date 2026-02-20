@@ -9,10 +9,22 @@ export default function WheelOfFortune() {
     const [rotation, setRotation] = useState(0)
     const [result, setResult] = useState<Inspiration | null>(null)
     const [showModal, setShowModal] = useState(false)
+    const [hasSpunToday, setHasSpunToday] = useState(false)
     const wheelRef = useRef<HTMLDivElement>(null)
 
+    useEffect(() => {
+        const lastSpinDate = localStorage.getItem('lastWheelSpinDate')
+        const lastSpinIndex = localStorage.getItem('lastWheelSpinIndex')
+        const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+
+        if (lastSpinDate === today && lastSpinIndex !== null) {
+            setHasSpunToday(true)
+            setResult(RAMADAN_INSPIRATIONS[parseInt(lastSpinIndex)])
+        }
+    }, [])
+
     const spinWheel = () => {
-        if (isSpinning) return
+        if (isSpinning || hasSpunToday) return
 
         setIsSpinning(true)
         setResult(null)
@@ -32,8 +44,15 @@ export default function WheelOfFortune() {
             const normalizedDegrees = (totalRotation % 360)
             const segmentIndex = Math.floor(((360 - normalizedDegrees) % 360) / 45)
 
-            setResult(RAMADAN_INSPIRATIONS[segmentIndex])
+            const selectedInspiration = RAMADAN_INSPIRATIONS[segmentIndex]
+            setResult(selectedInspiration)
             setShowModal(true)
+            setHasSpunToday(true)
+
+            // Save to localStorage
+            const today = new Date().toLocaleDateString('en-CA')
+            localStorage.setItem('lastWheelSpinDate', today)
+            localStorage.setItem('lastWheelSpinIndex', segmentIndex.toString())
         }, 4000)
     }
 
@@ -107,14 +126,16 @@ export default function WheelOfFortune() {
             </div>
 
             <button
-                onClick={spinWheel}
+                onClick={() => hasSpunToday ? setShowModal(true) : spinWheel()}
                 disabled={isSpinning}
                 className={`px-10 py-3 rounded-2xl font-black text-lg transition-all shadow-lg active:scale-95 ${isSpinning
                     ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-amber-500 to-amber-700 text-white hover:shadow-amber-500/20'
+                    : hasSpunToday
+                        ? 'bg-white border-2 border-amber-500 text-amber-600 hover:bg-amber-50'
+                        : 'bg-gradient-to-r from-amber-500 to-amber-700 text-white hover:shadow-amber-500/20'
                     }`}
             >
-                {isSpinning ? 'جاري السحب...' : 'أدر العجلة 🎡'}
+                {isSpinning ? 'جاري السحب...' : hasSpunToday ? 'عرض إلهام اليوم ✨' : 'أدر العجلة 🎡'}
             </button>
 
             {/* Result Modal */}
