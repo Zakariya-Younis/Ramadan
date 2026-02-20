@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Star, Medal, Trophy, Flame, Info, Moon, Calendar, Clock, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { getLocalDate, formatLocalDate } from '@/lib/utils'
+import WheelOfFortune from '@/components/WheelOfFortune'
 
 export default function Dashboard() {
     const [user, setUser] = useState<any>(null)
@@ -333,6 +334,9 @@ export default function Dashboard() {
                         </div>
                     )}
                 </div>
+
+                {/* Wheel of Fortune Section */}
+                <WheelOfFortune />
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-card p-6 rounded-3xl border border-border flex flex-col items-center justify-center gap-2 group hover:border-green-500/50 transition-all hover:shadow-md shadow-sm">

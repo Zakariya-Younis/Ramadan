@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGrid, Users, Settings, ArrowRight, ShieldCheck } from 'lucide-react'
+import { LayoutGrid, Users, Settings, ArrowRight, ShieldCheck, ClipboardList } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AdminDashboard() {
@@ -20,6 +20,14 @@ export default function AdminDashboard() {
             link: "/admin/users",
             color: "bg-amber-500",
             hover: "hover:bg-amber-600"
+        },
+        {
+            title: "سجل الإجابات",
+            description: "تقرير مفصل عن كل سؤال: من حله، متى، وكيف كانت النتيجة",
+            icon: <ClipboardList className="w-8 h-8" />,
+            link: "/admin/submissions",
+            color: "bg-emerald-500",
+            hover: "hover:bg-emerald-600"
         }
     ]
 
